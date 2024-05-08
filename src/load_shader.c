@@ -29,6 +29,7 @@ unsigned int load_shader(const char *vertex_shader_path,
   if (error_length > 0) {
     char *error_message = malloc(error_length + 1);
     glGetShaderInfoLog(vertex_shader_id, error_length, NULL, error_message);
+    error_message[error_length] = '\0';
 
     printf("%s", error_message);
     return 0;
@@ -43,6 +44,7 @@ unsigned int load_shader(const char *vertex_shader_path,
   if (error_length > 0) {
     char *error_message = malloc(error_length + 1);
     glGetShaderInfoLog(fragment_shader_id, error_length, NULL, error_message);
+    error_message[error_length] = '\0';
 
     printf("%s", error_message);
     return 0;
@@ -58,7 +60,8 @@ unsigned int load_shader(const char *vertex_shader_path,
 
   if (error_length > 0) {
     char *error_message = malloc(error_length + 1);
-    glGetShaderInfoLog(fragment_shader_id, error_length, NULL, error_message);
+    glGetProgramInfoLog(program_id, error_length, NULL, error_message);
+    error_message[error_length] = '\0';
 
     printf("%s", error_message);
     return 0;
@@ -69,6 +72,9 @@ unsigned int load_shader(const char *vertex_shader_path,
 
   glDeleteShader(vertex_shader_id);
   glDeleteShader(fragment_shader_id);
+
+  free((void *)vertex_shader_code);
+  free((void *)fragment_shader_code);
 
   return program_id;
 };
