@@ -3,11 +3,10 @@
 
 #include "load_shader.h"
 #include "mat4.h"
-#include "vec3.h"
 
-static const float vertices[] = {-0.5, -0.5, 0.0, -0.5, 0.5,  0.0,
-                                 0.5,  0.5,  0.0, 0.5,  -0.5, 0.0};
-static const unsigned int indices[] = {1, 0, 2, 2, 0, 3};
+static const float vertices[] = {-1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, -1,
+                                 -1, -1, 1,  -1, 1, 1,  1, 1, 1,  1, -1, 1};
+static const unsigned int indices[] = {1, 0, 2, 2, 0, 3, 5, 4, 6, 6, 4, 7};
 
 int main() {
   GLFWwindow *window;
@@ -57,13 +56,12 @@ int main() {
       mat4_create_projection_matrix(75, 16.0 / 9, 0.1, 100);
   unsigned int projection_matrix_uniform =
       glGetUniformLocation(program_id, "projection_matrix");
-  mat4_print(&projection_matrix);
 
-  Mat4 view_matrix = mat4_create_identity_matrix();
+  Transform camera_transform = {
+      .position = {0, 0, 10}, .rotation = {0, 0, 0}, .scale = {1, 1, 1}};
+
   unsigned int view_matrix_uniform =
       glGetUniformLocation(program_id, "view_matrix");
-
-  view_matrix = mat4_translate(&view_matrix, (Vec3){{0, 0, -10}});
 
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -77,10 +75,12 @@ int main() {
     glUniformMatrix4fv(projection_matrix_uniform, 1, GL_FALSE,
                        projection_matrix.values);
 
+    Mat4 view_matrix = mat4_from_transform(&camera_transform);
+    view_matrix = mat4_inverse(&view_matrix);
     glUniformMatrix4fv(view_matrix_uniform, 1, GL_FALSE, view_matrix.values);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-    glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices) / sizeof(unsigned int),
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int),
                    GL_UNSIGNED_INT, 0);
 
     glDisableVertexAttribArray(vertex_position_attribute);
