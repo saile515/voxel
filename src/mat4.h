@@ -3,25 +3,23 @@
 #include "transform.h"
 #include "vec3.h"
 
-typedef struct Mat4 {
-  float values[16];
-} Mat4;
+typedef float Mat4[16];
 
-Mat4 mat4_create_identity_matrix();
+void mat4_create_identity_matrix(Mat4 out);
 
-Mat4 mat4_create_projection_matrix(float fov, float aspect_ratio, float near,
-                                   float far);
+void mat4_create_projection_matrix(Mat4 out, double fov, double aspect_ratio,
+                                   double near, double far);
 
-Mat4 mat4_from_transform(Transform *transform);
+void mat4_from_transform(Mat4 out, const Transform *transform);
 
-Mat4 mat4_scale(const Mat4 *matrix, Vec3 vector);
+void mat4_scale(Mat4 out, const Mat4 matrix, const Vec3 scale);
 
-Mat4 mat4_rotate(const Mat4 *matrix, Vec3 vector);
+void mat4_rotate(Mat4 out, const Mat4 matrix, const Vec3 rotation);
 
-Mat4 mat4_translate(const Mat4 *matrix, Vec3 vector);
+void mat4_translate(Mat4 out, const Mat4 matrix, const Vec3 position);
 
-Mat4 mat4_multiply(const Mat4 *matrix_a, const Mat4 *matrix_b);
+void mat4_multiply(Mat4 out, const Mat4 a, const Mat4 b);
 
-Mat4 mat4_inverse(const Mat4 *matrix);
+void mat4_inverse(Mat4 out, const Mat4 m);
 
-void mat4_print(const Mat4 *matrix);
+void mat4_print(const Mat4 matrix);

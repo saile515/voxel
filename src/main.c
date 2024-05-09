@@ -1,8 +1,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "camera.h"
 #include "load_shader.h"
 #include "mat4.h"
+#include <stdio.h>
 
 static const float vertices[] = {-1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1, -1,
                                  -1, -1, 1,  -1, 1, 1,  1, 1, 1,  1, -1, 1};
@@ -52,18 +54,37 @@ int main() {
   unsigned int vertex_position_attribute =
       glGetAttribLocation(program_id, "vertex_position");
 
-  Mat4 projection_matrix =
-      mat4_create_projection_matrix(75, 16.0 / 9, 0.1, 100);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  Camera camera = {.transform = {.position = {0, 0, 0},
+                                 .rotation = {0, 0, 0},
+                                 .scale = {1, 1, 1}},
+                   .speed = 0.5,
+                   .sensitivity = 20};
+
+  mat4_create_projection_matrix(camera.projection_matrix, 75, 16.0 / 9, 0.1,
+                                100);
+  mat4_create_identity_matrix(camera.view_matrix);
+
+  Transform model_transform = {
+      .position = {0, 0, -10}, .rotation = {0, 0, 0}, .scale = {1, 1, 1}};
+  Mat4 model_matrix;
+
   unsigned int projection_matrix_uniform =
       glGetUniformLocation(program_id, "projection_matrix");
-
-  Transform camera_transform = {
-      .position = {0, 0, 10}, .rotation = {0, 0, 0}, .scale = {1, 1, 1}};
 
   unsigned int view_matrix_uniform =
       glGetUniformLocation(program_id, "view_matrix");
 
+  unsigned int model_matrix_uniform =
+      glGetUniformLocation(program_id, "model_matrix");
+
   while (!glfwWindowShouldClose(window)) {
+    camera_move(&camera, window);
+
+    model_transform.rotation[2] += 1;
+    mat4_from_transform(model_matrix, &model_transform);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(program_id);
@@ -73,11 +94,14 @@ int main() {
                           NULL);
 
     glUniformMatrix4fv(projection_matrix_uniform, 1, GL_FALSE,
-                       projection_matrix.values);
+                       camera.projection_matrix);
 
-    Mat4 view_matrix = mat4_from_transform(&camera_transform);
-    view_matrix = mat4_inverse(&view_matrix);
-    glUniformMatrix4fv(view_matrix_uniform, 1, GL_FALSE, view_matrix.values);
+    mat4_from_transform(camera.view_matrix, &camera.transform);
+    mat4_inverse(camera.view_matrix, camera.view_matrix);
+
+    glUniformMatrix4fv(view_matrix_uniform, 1, GL_FALSE, camera.view_matrix);
+
+    glUniformMatrix4fv(model_matrix_uniform, 1, GL_FALSE, model_matrix);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
     glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int),
