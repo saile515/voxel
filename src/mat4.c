@@ -1,11 +1,10 @@
 #include "mat4.h"
-#include "vec3.h"
 
+#include "math_util.h"
+#include "vec3.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
-static const double DEG_TO_RAD = M_PI / 180;
 
 void mat4_create_identity_matrix(Mat4 out) {
   out[0] = 1;

@@ -1,10 +1,9 @@
 #include "camera.h"
 
+#include "math_util.h"
 #include "vec2.h"
 #include "vec3.h"
 #include <math.h>
-
-static const double DEG_TO_RAD = M_PI / 180;
 
 void camera_move(Camera *camera, GLFWwindow *window) {
   Vec2i window_size;
@@ -15,8 +14,8 @@ void camera_move(Camera *camera, GLFWwindow *window) {
   glfwGetCursorPos(window, &cursor_position[0], &cursor_position[1]);
   camera->transform.rotation[1] =
       -cursor_position[0] / window_size[0] * camera->sensitivity;
-  camera->transform.rotation[0] =
-      -cursor_position[1] / window_size[0] * camera->sensitivity;
+  camera->transform.rotation[0] = clamp(
+      -cursor_position[1] / window_size[0] * camera->sensitivity, -90, 90);
 
   Vec2 local_direction = {0};
 
