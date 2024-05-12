@@ -30,7 +30,7 @@ int main() {
     return 1;
   }
 
-  glClearColor(0.0, 0.0, 0.1, 1.0);
+  glClearColor(0.2, 0.5, 0.9, 1.0);
 
   unsigned int vertex_array_object;
   glGenVertexArrays(1, &vertex_array_object);
