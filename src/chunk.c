@@ -7,19 +7,43 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void chunk_init(Chunk *chunk) {
-  for (uint8_t i = 0; i < 8; i++) {
-    chunk->root.octants[i] = calloc(1, sizeof(VoxelNode));
-    chunk->root.octants[i]->block_id = AIR;
+static void voxel_node_init(VoxelNode *voxel_node, int depth) {
+  int depth_factor = pow(2, depth);
+
+  if (depth_factor == 32) {
+    voxel_node->block_id = AIR;
+    return;
   }
 
-  chunk->root.octants[0]->block_id = GRASS;
-  chunk->root.octants[3]->block_id = GRASS;
-  chunk->root.octants[5]->block_id = GRASS;
-  chunk->root.octants[6]->block_id = GRASS;
+  for (uint8_t i = 0; i < 8; i++) {
+    voxel_node->octants[i] = calloc(1, sizeof(VoxelNode));
+  }
+
+  if (depth % 2 == 0) {
+    voxel_node->octants[0]->block_id = AIR;
+    voxel_node->octants[1]->block_id = GRASS;
+    voxel_node_init(voxel_node->octants[2], depth + 1);
+    voxel_node->octants[3]->block_id = AIR;
+    voxel_node->octants[4]->block_id = AIR;
+    voxel_node_init(voxel_node->octants[5], depth + 1);
+    voxel_node->octants[6]->block_id = GRASS;
+    voxel_node->octants[7]->block_id = AIR;
+  } else {
+    voxel_node_init(voxel_node->octants[0], depth + 1);
+    voxel_node->octants[1]->block_id = GRASS;
+    voxel_node->octants[2]->block_id = AIR;
+    voxel_node->octants[3]->block_id = AIR;
+    voxel_node->octants[4]->block_id = AIR;
+    voxel_node->octants[5]->block_id = AIR;
+    voxel_node->octants[6]->block_id = GRASS;
+    voxel_node_init(voxel_node->octants[7], depth + 1);
+  }
+}
+
+void chunk_init(Chunk *chunk) {
+  voxel_node_init(&chunk->root, 0);
 
   glGenBuffers(1, &chunk->vertex_buffer);
-  glGenBuffers(1, &chunk->voxel_buffer);
 
   chunk->mesh_size = 0;
 }
@@ -48,6 +72,8 @@ BLOCK_ID chunk_get_block_id(const Chunk *chunk, const Vec3 block) {
     octant = octant->octants[octant_x + octant_y * 2 + octant_z * 4];
 
     block_id = octant->block_id;
+
+    depth++;
   }
 
   return block_id;
@@ -86,7 +112,7 @@ static void make_face(Vector_float *vertices, Vec3 coordinates, int axis,
 void chunk_build_mesh(Chunk *chunk) {
   Vector_float vertices = {0};
 
-  vector_init_float(&vertices, 8);
+  vector_init_float(&vertices, 64);
 
   for (unsigned int x = 0; x < 32; x++) {
     for (unsigned int y = 0; y < 32; y++) {
@@ -130,3 +156,14 @@ void chunk_build_mesh(Chunk *chunk) {
   glBufferData(GL_ARRAY_BUFFER, vertices.size * sizeof(float), vertices.data,
                GL_STATIC_DRAW);
 }
+
+void voxel_node_free(VoxelNode *voxel_node) {
+  if (voxel_node->block_id == NONE) {
+    for (unsigned int i = 0; i < 8; i++) {
+      voxel_node_free(voxel_node->octants[i]);
+      free(voxel_node->octants[i]);
+    }
+  }
+}
+
+void chunk_free(Chunk *chunk) { voxel_node_free(&chunk->root); }

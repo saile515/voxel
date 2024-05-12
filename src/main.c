@@ -21,6 +21,8 @@ int main() {
     return 1;
   }
 
+  glfwWindowHint(GLFW_SAMPLES, 4);
+
   glfwMakeContextCurrent(window);
 
   if (glewInit() != GLEW_OK) {
@@ -64,6 +66,7 @@ int main() {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  glEnable(GL_MULTISAMPLE);
 
   while (!glfwWindowShouldClose(window)) {
     camera_move(&camera, window);
@@ -94,6 +97,8 @@ int main() {
   }
 
   glfwTerminate();
+
+  chunk_free(&chunk);
 
   return 0;
 }

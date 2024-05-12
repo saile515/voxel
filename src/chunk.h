@@ -13,7 +13,6 @@ typedef struct VoxelNode {
 typedef struct Chunk {
   VoxelNode root;
   unsigned int vertex_buffer;
-  unsigned int voxel_buffer;
   unsigned int mesh_size;
 } Chunk;
 
@@ -22,3 +21,7 @@ void chunk_init(Chunk *chunk);
 BLOCK_ID chunk_get_block_id(const Chunk *chunk, const Vec3 block);
 
 void chunk_build_mesh(Chunk *chunk);
+
+void voxel_node_free(VoxelNode *voxel_node);
+
+void chunk_free(Chunk *chunk);
