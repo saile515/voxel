@@ -41,6 +41,8 @@ int main() {
 
   unsigned int vertex_position_attribute =
       glGetAttribLocation(program_id, "vertex_position");
+  unsigned int vertex_normal_attribute =
+      glGetAttribLocation(program_id, "vertex_normal");
 
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -87,10 +89,15 @@ int main() {
     glEnableVertexAttribArray(vertex_position_attribute);
     glVertexAttribPointer(vertex_position_attribute, 1, GL_FLOAT, GL_FALSE, 0,
                           NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, chunk.normal_buffer);
+    glEnableVertexAttribArray(vertex_normal_attribute);
+    glVertexAttribPointer(vertex_normal_attribute, 1, GL_FLOAT, GL_FALSE, 0,
+                          NULL);
 
     glDrawArrays(GL_TRIANGLES, 0, chunk.mesh_size);
 
     glDisableVertexAttribArray(vertex_position_attribute);
+    glDisableVertexAttribArray(vertex_normal_attribute);
 
     glfwSwapBuffers(window);
     glfwPollEvents();

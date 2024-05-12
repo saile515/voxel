@@ -13,6 +13,7 @@ typedef struct VoxelNode {
 typedef struct Chunk {
   VoxelNode root;
   unsigned int vertex_buffer;
+  unsigned int normal_buffer;
   unsigned int mesh_size;
 } Chunk;
 
