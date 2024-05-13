@@ -3,6 +3,7 @@
 #include "math_util.h"
 #include "vec2.h"
 #include "vec3.h"
+#include <GLFW/glfw3.h>
 #include <math.h>
 
 void camera_move(Camera *camera, GLFWwindow *window) {
@@ -35,30 +36,35 @@ void camera_move(Camera *camera, GLFWwindow *window) {
     local_direction[0] += 1;
   }
 
-  double yaw = camera->transform.rotation[1] * DEG_TO_RAD;
-  double pitch = camera->transform.rotation[0] * DEG_TO_RAD;
+  if (vec2_length(local_direction) != 0) {
+    double yaw = camera->transform.rotation[1] * DEG_TO_RAD;
+    double pitch = camera->transform.rotation[0] * DEG_TO_RAD;
 
-  Vec3 forward;
+    Vec3 forward;
 
-  forward[0] = sin(yaw) * cos(pitch);
-  forward[1] = -sin(pitch);
-  forward[2] = cos(yaw) * cos(pitch);
+    forward[0] = sin(yaw) * cos(pitch);
+    forward[1] = -sin(pitch);
+    forward[2] = cos(yaw) * cos(pitch);
 
-  Vec3 right;
+    Vec3 right;
 
-  right[0] = cos(yaw);
-  right[1] = 0;
-  right[2] = -sin(yaw);
+    right[0] = cos(yaw);
+    right[1] = 0;
+    right[2] = -sin(yaw);
 
-  vec3_multiply_double(forward, forward, local_direction[1]);
-  vec3_multiply_double(right, right, local_direction[0]);
+    vec3_multiply_double(forward, forward, local_direction[1]);
+    vec3_multiply_double(right, right, local_direction[0]);
 
-  Vec3 move_direction;
+    Vec3 move_direction;
 
-  vec3_add(move_direction, forward, right);
-  vec3_normalize(move_direction, move_direction);
-  vec3_multiply_double(move_direction, move_direction, camera->speed);
+    vec3_add(move_direction, forward, right);
+    vec3_normalize(move_direction, move_direction);
+    vec3_multiply_double(move_direction, move_direction, camera->speed);
 
-  vec3_add(camera->transform.position, camera->transform.position,
-           move_direction);
+    vec3_add(camera->transform.position, camera->transform.position,
+             move_direction);
+  }
+
+  mat4_from_transform(camera->view_matrix, &camera->transform);
+  mat4_inverse(camera->view_matrix, camera->view_matrix);
 }

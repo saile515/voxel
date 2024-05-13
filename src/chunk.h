@@ -15,9 +15,10 @@ typedef struct Chunk {
   unsigned int vertex_buffer;
   unsigned int normal_buffer;
   unsigned int mesh_size;
+  Vec3 position;
 } Chunk;
 
-void chunk_init(Chunk *chunk);
+void chunk_init(Chunk *chunk, const Vec3 position);
 
 BLOCK_ID chunk_get_block_id(const Chunk *chunk, const Vec3 block);
 

@@ -27,3 +27,13 @@ void vec3_normalize(Vec3 out, const Vec3 vector) {
 double vec3_length(const Vec3 vector) {
   return sqrt(pow(vector[0], 2) + pow(vector[1], 2) + pow(vector[2], 2));
 }
+
+void vec3_copy(Vec3 out, const Vec3 vector) {
+  out[0] = vector[0];
+  out[1] = vector[1];
+  out[2] = vector[2];
+}
+
+bool vec3_compare(const Vec3 a, const Vec3 b) {
+  return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
+}

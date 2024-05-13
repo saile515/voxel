@@ -40,7 +40,8 @@ static void voxel_node_init(VoxelNode *voxel_node, int depth) {
   }
 }
 
-void chunk_init(Chunk *chunk) {
+void chunk_init(Chunk *chunk, const Vec3 position) {
+  vec3_copy(chunk->position, position);
   voxel_node_init(&chunk->root, 0);
 
   glGenBuffers(1, &chunk->vertex_buffer);

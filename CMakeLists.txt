@@ -16,7 +16,8 @@ set(PROJECT_HEADERS
     src/transform.h
     src/vec2.h
     src/vec3.h
-    src/vector.h)
+    src/vector.h
+    src/world.h)
 
 set(PROJECT_SOURCES
     src/camera.c
@@ -27,7 +28,8 @@ set(PROJECT_SOURCES
     src/read_file.c
     src/vec2.c
     src/vec3.c
-    src/vector.c)
+    src/vector.c
+    src/world.c)
 
 add_executable(voxel src/main.c ${PROJECT_HEADERS} ${PROJECT_SOURCES})
 target_link_libraries(voxel -lm glfw GLEW GL)

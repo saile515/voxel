@@ -2,7 +2,8 @@
 
 #include "mat4.h"
 #include "transform.h"
-#include <GLFW/glfw3.h>
+
+typedef struct GLFWwindow GLFWwindow;
 
 typedef struct Camera {
   Transform transform;
