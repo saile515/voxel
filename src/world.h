@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "chunk.h"
+#include <threads.h>
 
 #define render_distance 8
 
@@ -14,9 +15,18 @@ typedef struct VoxelShader {
   unsigned int chunk_position_uniform;
 } VoxelShader;
 
+typedef struct ChunkThreadData {
+  Chunk **chunks;
+  Mesh *out;
+  unsigned int size;
+  bool world_thread_busy;
+} ChunkThreadData;
+
 typedef struct World {
   Chunk *chunks[render_distance][render_distance][render_distance];
   VoxelShader shader;
+  thrd_t world_thread;
+  ChunkThreadData chunk_thread_data;
 } World;
 
 void world_init(World *world);

@@ -44,6 +44,8 @@ static void voxel_node_init(VoxelNode *voxel_node, int depth) {
 void chunk_init(Chunk *chunk, const Vec3 position) {
   TracyCZone(chunk_init, true);
 
+  mtx_init(&chunk->mutex, mtx_plain);
+
   vec3_copy(chunk->position, position);
   voxel_node_init(&chunk->root, 0);
 
@@ -166,7 +168,7 @@ static bool is_solid(uint32_t *block_mask, Vec3i position) {
   return (block_mask[position[0] + position[1] * 32] >> position[2]) & 0b1;
 }
 
-void chunk_build_mesh(Chunk *chunk) {
+Mesh chunk_build_mesh(Chunk *chunk) {
   TracyCZone(chunk_build_mesh, true);
   Vector_float vertices = {0};
   Vector_float normals = {0};
@@ -213,19 +215,9 @@ void chunk_build_mesh(Chunk *chunk) {
 
   free(block_mask);
 
-  chunk->mesh_size = vertices.size;
-
-  glBindBuffer(GL_ARRAY_BUFFER, chunk->vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size * sizeof(float), vertices.data,
-               GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, chunk->normal_buffer);
-  glBufferData(GL_ARRAY_BUFFER, normals.size * sizeof(float), normals.data,
-               GL_STATIC_DRAW);
-
-  vector_free_float(&vertices);
-  vector_free_float(&normals);
-
   TracyCZoneEnd(chunk_build_mesh);
+
+  return (Mesh){vertices, normals};
 }
 
 void voxel_node_free(VoxelNode *voxel_node) {
@@ -237,4 +229,7 @@ void voxel_node_free(VoxelNode *voxel_node) {
   }
 }
 
-void chunk_free(Chunk *chunk) { voxel_node_free(&chunk->root); }
+void chunk_free(Chunk *chunk) {
+  voxel_node_free(&chunk->root);
+  mtx_destroy(&chunk->mutex);
+}
