@@ -1,10 +1,19 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(voxel LANGUAGES C)
+project(voxel LANGUAGES C CXX)
 
-set(CMAKE_C_COMPILER "clang")
-
+# if(NOT DEFINED CMAKE_BUILD_TYPE)
 set(CMAKE_BUILD_TYPE "Debug")
+# endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  option(TRACY_ENABLE ON)
+  option(TRACY_ON_DEMAND ON)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  set(CMAKE_C_FLAGS_DEBUG -g)
+endif()
+
+add_subdirectory(tracy)
 
 set(PROJECT_HEADERS
     src/camera.h
@@ -32,4 +41,5 @@ set(PROJECT_SOURCES
     src/world.c)
 
 add_executable(voxel src/main.c ${PROJECT_HEADERS} ${PROJECT_SOURCES})
-target_link_libraries(voxel -lm glfw GLEW GL)
+target_link_libraries(voxel -lm glfw GLEW GL Tracy::TracyClient)
+target_include_directories(voxel PRIVATE tracy/public)

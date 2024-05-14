@@ -1,8 +1,8 @@
 #include "vector.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define MakeVectorDefinition(T)                                                \
   void vector_init_##T(Vector_##T *vector, unsigned int size) {                \
@@ -13,17 +13,14 @@
       free(vector->data);                                                      \
     }                                                                          \
                                                                                \
-    vector->data = calloc(vector->allocated_size, sizeof(T));                  \
+    vector->data = malloc(vector->allocated_size * sizeof(T));                 \
   }                                                                            \
                                                                                \
   void vector_insert_##T(Vector_##T *vector, T value) {                        \
     if (vector->size >= vector->allocated_size) {                              \
       vector->allocated_size *= 2;                                             \
-      T *current_data = vector->data;                                          \
-      vector->data = calloc(vector->allocated_size, sizeof(T));                \
-      memcpy(vector->data, current_data,                                       \
-             vector->allocated_size / 2 * sizeof(T));                          \
-      free(current_data);                                                      \
+      vector->data =                                                           \
+          realloc(vector->data, vector->allocated_size * sizeof(T));           \
     }                                                                          \
                                                                                \
     vector->data[vector->size] = value;                                        \

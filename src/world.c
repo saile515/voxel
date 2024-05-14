@@ -4,6 +4,7 @@
 #include "chunk.h"
 #include "load_shader.h"
 #include "math_util.h"
+#include "tracy/TracyC.h"
 #include <GL/glew.h>
 #include <math.h>
 #include <stdio.h>
@@ -47,6 +48,7 @@ void world_init(World *world) {
 }
 
 void world_load(World *world, Camera *camera) {
+  TracyCZone(world_load, true);
   Vec3 camera_position;
   vec3_copy(camera_position, camera->transform.position);
   camera_position[0] = floor(camera_position[0] / 32);
@@ -82,11 +84,10 @@ void world_load(World *world, Camera *camera) {
       }
     }
   }
+  TracyCZoneEnd(world_load);
 }
 
 void world_render(World *world, Camera *camera) {
-  world_load(world, camera);
-
   glUseProgram(world->shader.program_id);
 
   glUniformMatrix4fv(world->shader.projection_matrix_uniform, 1, GL_FALSE,
@@ -102,6 +103,7 @@ void world_render(World *world, Camera *camera) {
     for (unsigned int y = 0; y < render_distance; y++) {
       for (unsigned int z = 0; z < render_distance; z++) {
         Chunk *chunk = world->chunks[x][y][z];
+
         glUniform3f(world->shader.chunk_position_uniform, chunk->position[0],
                     chunk->position[1], chunk->position[2]);
 

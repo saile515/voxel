@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "../tracy/public/tracy/TracyC.h"
 #include "camera.h"
 #include "mat4.h"
 #include "world.h"
@@ -60,7 +61,10 @@ int main() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    world_load(&world, &camera);
     world_render(&world, &camera);
+
+    TracyCFrameMark;
 
     glfwSwapBuffers(window);
     glfwPollEvents();
