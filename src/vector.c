@@ -1,5 +1,6 @@
 #include "vector.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,8 +24,7 @@
           realloc(vector->data, vector->allocated_size * sizeof(T));           \
     }                                                                          \
                                                                                \
-    vector->data[vector->size] = value;                                        \
-    vector->size++;                                                            \
+    vector->data[vector->size++] = value;                                      \
   }                                                                            \
                                                                                \
   T vector_get_##T(const Vector_##T *vector, unsigned int index) {             \

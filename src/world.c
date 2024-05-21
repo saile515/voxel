@@ -21,7 +21,7 @@ int build_chunk_mesh(void *data) {
     Chunk *chunk = chunk_thread_data->chunks[i];
     mtx_lock(&chunk->mutex);
     Mesh *out = &chunk_thread_data->out[i];
-    *out = chunk_build_mesh(chunk);
+    *out = chunk_build_mesh(chunk, chunk_thread_data->world);
     mtx_unlock(&chunk->mutex);
   }
 
@@ -37,6 +37,7 @@ void world_init(World *world) {
       malloc(sizeof(Mesh) * (int)(pow(render_distance, 3)));
   world->chunk_thread_data.size = 0;
   world->chunk_thread_data.world_thread_busy = false;
+  world->chunk_thread_data.world = world;
 
   world->shader.program_id = load_shader("assets/shaders/vertex_shader.glsl",
                                          "assets/shaders/fragment_shader.glsl");
@@ -55,26 +56,19 @@ void world_init(World *world) {
   for (int x = 0; x < render_distance; x++) {
     for (int y = 0; y < render_distance; y++) {
       for (int z = 0; z < render_distance; z++) {
-        Vec3 chunk_position = {x - (float)render_distance / 2,
-                               y - (float)render_distance / 2,
-                               z - (float)render_distance / 2};
-
-        int index_x = mod((int)chunk_position[0], render_distance);
-        int index_y = mod((int)chunk_position[1], render_distance);
-        int index_z = mod((int)chunk_position[2], render_distance);
-
-        world->chunks[index_x][index_y][index_z] = calloc(1, sizeof(Chunk));
-
-        Chunk *chunk = world->chunks[index_x][index_y][index_z];
-        chunk_init(chunk, chunk_position);
-        world->chunk_thread_data.chunks[world->chunk_thread_data.size++] =
-            chunk;
+        world->chunks[x][y][z] = calloc(1, sizeof(Chunk));
+        chunk_init(world->chunks[x][y][z], (Vec3i){x, y, z});
       }
     }
   }
+}
 
-  thrd_create(&world->world_thread, build_chunk_mesh,
-              &world->chunk_thread_data);
+Chunk *world_get_chunk(const World *world, const Vec3i position) {
+  unsigned int index_x = mod(position[0], render_distance);
+  unsigned int index_y = mod(position[1], render_distance);
+  unsigned int index_z = mod(position[2], render_distance);
+
+  return world->chunks[index_x][index_y][index_z];
 }
 
 void world_load(World *world, Camera *camera) {
@@ -85,6 +79,13 @@ void world_load(World *world, Camera *camera) {
   for (int i = 0; i < world->chunk_thread_data.size; i++) {
     Chunk *chunk = world->chunk_thread_data.chunks[i];
     Mesh *mesh = &world->chunk_thread_data.out[i];
+
+    chunk->mesh_size = mesh->vertices.size;
+
+    if (chunk->mesh_size == 0) {
+      continue;
+    }
+
     glBindBuffer(GL_ARRAY_BUFFER, chunk->vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, mesh->vertices.size * sizeof(float),
                  mesh->vertices.data, GL_STATIC_DRAW);
@@ -93,8 +94,6 @@ void world_load(World *world, Camera *camera) {
     glBufferData(GL_ARRAY_BUFFER, mesh->normals.size * sizeof(float),
                  mesh->normals.data, GL_STATIC_DRAW);
 
-    chunk->mesh_size = mesh->vertices.size;
-
     vector_free_float(&mesh->vertices);
     vector_free_float(&mesh->normals);
   }
@@ -102,33 +101,29 @@ void world_load(World *world, Camera *camera) {
   world->chunk_thread_data.size = 0;
 
   TracyCZone(world_load, true);
-  Vec3 camera_position;
-  vec3_copy(camera_position, camera->transform.position);
-  camera_position[0] = floor((camera_position[0]) / 32);
-  camera_position[1] = floor((camera_position[1]) / 32);
-  camera_position[2] = floor((camera_position[2]) / 32);
+  Vec3i camera_position = {camera->transform.position[0],
+                           camera->transform.position[1],
+                           camera->transform.position[2]};
+  camera_position[0] /= 32;
+  camera_position[1] /= 32;
+  camera_position[2] /= 32;
 
   for (int x = 0; x < render_distance; x++) {
     for (int y = 0; y < render_distance; y++) {
       for (int z = 0; z < render_distance; z++) {
-        if (x != 0 && y != 0 && z != 0 && x != render_distance - 1 &&
-            y != render_distance - 1 && z != render_distance - 1) {
-          continue;
-        }
+        Vec3i chunk_position;
+        vec3i_add(chunk_position, camera_position,
+                  (Vec3i){x - (float)render_distance / 2,
+                          y - (float)render_distance / 2,
+                          z - (float)render_distance / 2});
 
-        Vec3 chunk_position;
-        vec3_add(chunk_position, camera_position,
-                 (Vec3){x - (float)render_distance / 2,
-                        y - (float)render_distance / 2,
-                        z - (float)render_distance / 2});
-
-        int index_x = mod((int)chunk_position[0], render_distance);
-        int index_y = mod((int)chunk_position[1], render_distance);
-        int index_z = mod((int)chunk_position[2], render_distance);
+        int index_x = mod(chunk_position[0], render_distance);
+        int index_y = mod(chunk_position[1], render_distance);
+        int index_z = mod(chunk_position[2], render_distance);
 
         Chunk *chunk = world->chunks[index_x][index_y][index_z];
 
-        if (!vec3_compare(chunk->position, chunk_position)) {
+        if (!vec3i_compare(chunk->position, chunk_position)) {
           chunk_free(chunk);
           memset(chunk, 0, sizeof(Chunk));
           chunk_init(chunk, chunk_position);

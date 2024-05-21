@@ -39,7 +39,7 @@ int main() {
 
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-  Camera camera = {.transform = {.position = {0, 0, 0},
+  Camera camera = {.transform = {.position = {0, 10, 0},
                                  .rotation = {0, 0, 0},
                                  .scale = {1, 1, 1}},
                    .speed = 0.5,

@@ -4,7 +4,7 @@
 #include "chunk.h"
 #include <threads.h>
 
-#define render_distance 8
+#define render_distance 16
 
 typedef struct VoxelShader {
   unsigned int program_id;
@@ -20,6 +20,7 @@ typedef struct ChunkThreadData {
   Mesh *out;
   unsigned int size;
   bool world_thread_busy;
+  World *world;
 } ChunkThreadData;
 
 typedef struct World {
@@ -30,6 +31,8 @@ typedef struct World {
 } World;
 
 void world_init(World *world);
+
+Chunk *world_get_chunk(const World *world, const Vec3i position);
 
 void world_load(World *world, Camera *camera);
 
