@@ -16,6 +16,7 @@ endif()
 add_subdirectory(tracy)
 
 set(PROJECT_HEADERS
+    src/block_type.h
     src/camera.h
     src/chunk.h
     src/load_shader.h
